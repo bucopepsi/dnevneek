@@ -1,0 +1,2 @@
+# dnevneek
+Log everything.
