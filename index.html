@@ -467,6 +467,44 @@ input::placeholder { color: var(--text3); }
 
 .empty-state { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
 .empty-state .em-icon { font-size: 32px; margin-bottom: 12px; }
+
+/* EXPORT */
+.export-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.export-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.export-btn:active { opacity: 0.75; }
+.export-btn.primary { background: var(--accent-soft); border-color: var(--accent); color: var(--accent2); }
+.export-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); text-align: center; margin-top: 6px; }
+.export-reminder {
+  background: var(--amber-soft);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--amber);
+  font-family: var(--mono);
+  margin-top: 10px;
+  line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -681,6 +719,23 @@ input::placeholder { color: var(--text3); }
 
 <!-- HISTORY PAGE -->
 <div class="page" id="page-history">
+
+  <div class="export-section">
+    <div class="section-label">Backup &amp; export</div>
+    <button class="export-btn primary" onclick="exportCSV()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+      Export all data as CSV
+    </button>
+    <button class="export-btn" onclick="exportJSON()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M5 7l3 3 3-3M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+      Export raw backup (JSON)
+    </button>
+    <div class="export-meta" id="export-meta">no export recorded yet</div>
+    <div class="export-reminder">
+      Recommended: export once a month.<br>Save the file to your Files app or iCloud.
+    </div>
+  </div>
+
   <div id="history-list"></div>
 </div>
 
@@ -1078,6 +1133,84 @@ function renderHistory() {
   }).join('');
 }
 
+// --- EXPORT ---
+function exportCSV() {
+  const entries = getAllEntries();
+  if (!entries.length) { alert('No data to export yet.'); return; }
+
+  const rows = [];
+  // Main daily log header
+  rows.push(['date','bed_time','wake_time','sleep_hours','sleep_quality','mood','exercise','nicorette_gums','meditated','prayed','gratitude','journaled','journal_type'].join(','));
+
+  for (const e of entries) {
+    const sleepH = e.sleepMins ? (e.sleepMins/60).toFixed(2) : '';
+    rows.push([
+      e.date, e.bedTime||'', e.wakeTime||'', sleepH,
+      e.sleepQuality||'', e.mood||'', e.exercise>=0?e.exercise:'',
+      e.nicorette||0,
+      e.meditated?1:0, e.prayed?1:0, e.gratitude?1:0,
+      e.journaled?1:0, e.journalType||''
+    ].join(','));
+  }
+
+  rows.push('');
+  rows.push('--- EXPENSES ---');
+  rows.push(['date','category','amount_mkd','note','time'].join(','));
+  for (const e of entries) {
+    for (const ex of (e.expenses||[])) {
+      rows.push([
+        e.date,
+        `"${ex.cat}"`,
+        ex.amt,
+        `"${(ex.note||'').replace(/"/g,'""')}"`,
+        ex.time||''
+      ].join(','));
+    }
+  }
+
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `dnevnik_export_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  recordExport();
+}
+
+function exportJSON() {
+  const entries = getAllEntries();
+  if (!entries.length) { alert('No data to export yet.'); return; }
+  const blob = new Blob([JSON.stringify(entries, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `dnevnik_backup_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  recordExport();
+}
+
+function recordExport() {
+  const now = new Date();
+  const str = now.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  localStorage.setItem('last_export', now.toISOString());
+  updateExportMeta();
+}
+
+function updateExportMeta() {
+  const el = document.getElementById('export-meta');
+  if (!el) return;
+  const last = localStorage.getItem('last_export');
+  if (!last) { el.textContent = 'no export recorded yet'; return; }
+  const d = new Date(last);
+  const daysSince = Math.floor((Date.now()-d)/86400000);
+  const str = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  el.textContent = `last export: ${str} · ${daysSince===0?'today':daysSince+' days ago'}`;
+  if (daysSince > 28) el.style.color = 'var(--amber)';
+}
+
 // --- PAGE NAV ---
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1086,7 +1219,7 @@ function showPage(id) {
   event.target.classList.add('active');
   if (id==='dashboard') renderDashboard();
   if (id==='expenses') renderExpensePage();
-  if (id==='history') renderHistory();
+  if (id==='history') { renderHistory(); updateExportMeta(); }
 }
 
 init();
