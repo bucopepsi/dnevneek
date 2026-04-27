@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dnevnik">
+<meta name="theme-color" content="#0a0a0f">
+<title>Dnevnik</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c26;
+  --surface3: #242433;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f8;
+  --text2: #8888a8;
+  --text3: #55556a;
+  --accent: #7c6af7;
+  --accent2: #a594fa;
+  --accent-soft: rgba(124,106,247,0.15);
+  --green: #4ade80;
+  --green-soft: rgba(74,222,128,0.12);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245,158,11,0.12);
+  --red: #f87171;
+  --red-soft: rgba(248,113,113,0.12);
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* NAV */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding-top: var(--safe-top);
+}
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent2);
+  letter-spacing: 0.05em;
+}
+.nav-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+.nav-tabs {
+  display: flex; gap: 2px;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+.nav-tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.nav-tab.active {
+  background: var(--surface3);
+  color: var(--accent2);
+  border: 1px solid var(--border2);
+}
+
+/* LAYOUT */
+.page {
+  padding-top: calc(var(--safe-top) + 110px);
+  padding-bottom: calc(var(--safe-bottom) + 32px);
+  padding-left: 16px;
+  padding-right: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  display: none;
+}
+.page.active { display: block; }
+
+/* SECTION */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* SLEEP */
+.time-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+}
+.time-field label {
+  font-size: 11px; color: var(--text3); display: block; margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.time-field input[type="time"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 18px;
+  padding: 10px 12px;
+  outline: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+}
+.sleep-result {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+}
+.sleep-result span:first-child { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+.sleep-result span:last-child { font-family: var(--mono); font-size: 18px; color: var(--accent2); }
+
+/* SCALE BUTTONS */
+.scale-row {
+  display: flex; gap: 8px; margin-bottom: 4px;
+}
+.scale-btn {
+  flex: 1; padding: 10px 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  line-height: 1.3;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.scale-btn .num { font-size: 16px; font-weight: 500; color: var(--text2); }
+.scale-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+.scale-btn.active .num { color: var(--accent2); }
+
+/* EXERCISE */
+.exercise-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.exercise-btn {
+  padding: 12px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  line-height: 1.4;
+}
+.exercise-btn .ex-num { font-size: 22px; font-weight: 500; color: var(--text2); margin-bottom: 4px; }
+.exercise-btn.active { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.exercise-btn.active .ex-num { color: var(--green); }
+
+/* COUNTER */
+.counter-row {
+  display: flex; align-items: center; gap: 16px;
+}
+.counter-label { font-size: 13px; color: var(--text2); flex: 1; }
+.counter-controls { display: flex; align-items: center; gap: 12px; }
+.counter-btn {
+  width: 36px; height: 36px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  font-family: var(--mono);
+  line-height: 1;
+}
+.counter-btn:active { background: var(--surface3); }
+.counter-val {
+  font-family: var(--mono);
+  font-size: 24px;
+  color: var(--accent2);
+  min-width: 32px;
+  text-align: center;
+}
+
+/* TOGGLES */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-row:first-child { padding-top: 0; }
+.toggle-label { font-size: 14px; color: var(--text2); }
+.toggle {
+  position: relative; width: 44px; height: 26px;
+  background: var(--surface3);
+  border-radius: 13px;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  background: var(--text3);
+  border-radius: 50%;
+  top: 2px; left: 2px;
+  transition: all 0.2s;
+}
+.toggle.on::after { background: white; transform: translateX(18px); }
+
+/* JOURNAL TYPE */
+.journal-type-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;
+}
+.type-btn {
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.type-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent2); }
+
+/* EXPENSES */
+.expense-cats {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+}
+.cat-btn {
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text3);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cat-btn.active { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+
+.expense-inputs { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
+.expense-amount-wrap { position: relative; }
+.expense-amount-wrap span {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 14px; color: var(--text3);
+}
+input[type="number"], .note-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: 10px 12px;
+  outline: none;
+}
+input[type="number"] { padding-left: 36px; }
+.note-input { font-size: 14px; margin-top: 8px; }
+input::placeholder { color: var(--text3); }
+.add-btn {
+  padding: 10px 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.add-btn:active { opacity: 0.8; }
+
+.expense-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.expense-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.expense-item-left { flex: 1; }
+.expense-item-cat { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.expense-item-note { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.expense-item-right { display: flex; align-items: center; gap: 10px; }
+.expense-item-amt { font-family: var(--mono); font-size: 16px; color: var(--amber); }
+.delete-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-size: 16px; padding: 2px; line-height: 1;
+}
+.expense-daily-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+.expense-daily-total span:first-child { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+.expense-daily-total span:last-child { font-family: var(--mono); font-size: 16px; color: var(--amber); }
+
+/* SAVE BUTTON */
+.save-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.save-btn:active { opacity: 0.85; transform: scale(0.99); }
+.save-feedback {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--green);
+  margin-top: 10px;
+  height: 18px;
+  transition: opacity 0.3s;
+}
+
+/* DASHBOARD */
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.dash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.dash-card.wide { grid-column: 1 / -1; }
+.dash-card-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text3); text-transform: uppercase; margin-bottom: 8px;
+}
+.dash-card-val {
+  font-family: var(--mono); font-size: 28px; color: var(--text); line-height: 1;
+}
+.dash-card-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.dash-card-val.accent { color: var(--accent2); }
+.dash-card-val.green { color: var(--green); }
+.dash-card-val.amber { color: var(--amber); }
+
+/* SPARKLINE */
+.sparkline-wrap { margin-top: 10px; }
+.sparkline-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.sparkline-key { font-size: 11px; color: var(--text3); font-family: var(--mono); width: 60px; flex-shrink: 0; }
+.sparkline-bars { display: flex; gap: 3px; align-items: flex-end; height: 28px; flex: 1; }
+.spark-bar {
+  flex: 1; border-radius: 3px 3px 0 0;
+  min-height: 3px;
+  transition: height 0.3s;
+}
+
+/* HISTORY */
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.history-date {
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.history-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.history-pill {
+  font-size: 11px; font-family: var(--mono);
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--surface2); color: var(--text2);
+  border: 1px solid var(--border);
+}
+.history-pill.mood { background: var(--accent-soft); color: var(--accent2); border-color: var(--accent); }
+.history-pill.sleep { background: rgba(99,179,237,0.1); color: #90cdf4; border-color: rgba(99,179,237,0.3); }
+.history-pill.exercise { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.history-pill.expense { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
+
+/* EXPENSE HISTORY */
+.exp-history-section { margin-top: 14px; }
+.exp-period-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.exp-period-tab {
+  font-family: var(--mono); font-size: 11px;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text3);
+  cursor: pointer; transition: all 0.15s;
+}
+.exp-period-tab.active { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
+.cat-breakdown { display: flex; flex-direction: column; gap: 6px; }
+.cat-row { display: flex; align-items: center; gap: 10px; }
+.cat-row-name { font-size: 12px; color: var(--text2); flex: 1; }
+.cat-row-bar-wrap { flex: 2; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+.cat-row-bar { height: 100%; background: var(--amber); border-radius: 2px; transition: width 0.4s; }
+.cat-row-amt { font-family: var(--mono); font-size: 12px; color: var(--amber); min-width: 60px; text-align: right; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
+.empty-state .em-icon { font-size: 32px; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="nav-logo">dnevnik_</span>
+    <span class="nav-date" id="navDate"></span>
+  </div>
+  <div style="padding: 0 16px 12px; display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;">
+    <button class="nav-tab active" onclick="showPage('log')">Log</button>
+    <button class="nav-tab" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="showPage('expenses')">Expenses</button>
+    <button class="nav-tab" onclick="showPage('history')">History</button>
+  </div>
+</nav>
+
+<!-- LOG PAGE -->
+<div class="page active" id="page-log">
+
+  <!-- Sleep -->
+  <div class="section">
+    <div class="section-label">Sleep</div>
+    <div class="time-row">
+      <div class="time-field">
+        <label>Went to bed</label>
+        <input type="time" id="bedTime" value="23:00">
+      </div>
+      <div class="time-field">
+        <label>Woke up</label>
+        <input type="time" id="wakeTime" value="07:00">
+      </div>
+    </div>
+    <div class="sleep-result">
+      <span>Total sleep</span>
+      <span id="sleepHours">8h 00m</span>
+    </div>
+    <div class="section-label" style="margin-bottom:10px;">Sleep quality</div>
+    <div class="scale-row" id="sleepQuality">
+      <button class="scale-btn" data-val="1" onclick="setScale('sleepQuality',1)"><span class="num">1</span>poor</button>
+      <button class="scale-btn" data-val="2" onclick="setScale('sleepQuality',2)"><span class="num">2</span>okay</button>
+      <button class="scale-btn" data-val="3" onclick="setScale('sleepQuality',3)"><span class="num">3</span>good</button>
+      <button class="scale-btn" data-val="4" onclick="setScale('sleepQuality',4)"><span class="num">4</span>great</button>
+      <button class="scale-btn" data-val="5" onclick="setScale('sleepQuality',5)"><span class="num">5</span>best</button>
+    </div>
+  </div>
+
+  <!-- Mood -->
+  <div class="section">
+    <div class="section-label">Mood</div>
+    <div class="scale-row" id="mood">
+      <button class="scale-btn" data-val="1" onclick="setScale('mood',1)"><span class="num">1</span>rough</button>
+      <button class="scale-btn" data-val="2" onclick="setScale('mood',2)"><span class="num">2</span>low</button>
+      <button class="scale-btn" data-val="3" onclick="setScale('mood',3)"><span class="num">3</span>okay</button>
+      <button class="scale-btn" data-val="4" onclick="setScale('mood',4)"><span class="num">4</span>good</button>
+      <button class="scale-btn" data-val="5" onclick="setScale('mood',5)"><span class="num">5</span>great</button>
+    </div>
+  </div>
+
+  <!-- Exercise -->
+  <div class="section">
+    <div class="section-label">Exercise</div>
+    <div class="exercise-row" id="exercise">
+      <button class="exercise-btn" data-val="0" onclick="setExercise(0)">
+        <div class="ex-num">0</div>Rest
+      </button>
+      <button class="exercise-btn" data-val="1" onclick="setExercise(1)">
+        <div class="ex-num">1</div>Light
+      </button>
+      <button class="exercise-btn" data-val="2" onclick="setExercise(2)">
+        <div class="ex-num">2</div>Full session
+      </button>
+    </div>
+  </div>
+
+  <!-- Nicorette -->
+  <div class="section">
+    <div class="section-label">Nicorette</div>
+    <div class="counter-row">
+      <span class="counter-label">Gums today</span>
+      <div class="counter-controls">
+        <button class="counter-btn" onclick="changeCounter('nicorette',-1)">−</button>
+        <span class="counter-val" id="nicorette-val">0</span>
+        <button class="counter-btn" onclick="changeCounter('nicorette',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mindfulness -->
+  <div class="section">
+    <div class="section-label">Mindfulness</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Meditated</span>
+      <div class="toggle" id="tog-meditated" onclick="toggleItem('meditated')"></div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Prayed</span>
+      <div class="toggle" id="tog-prayed" onclick="toggleItem('prayed')"></div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Gratitude practice</span>
+      <div class="toggle" id="tog-gratitude" onclick="toggleItem('gratitude')"></div>
+    </div>
+  </div>
+
+  <!-- Journal -->
+  <div class="section">
+    <div class="section-label">Journal</div>
+    <div class="toggle-row" style="border-bottom: none; padding-bottom: 0;">
+      <span class="toggle-label">Journaled today</span>
+      <div class="toggle" id="tog-journaled" onclick="toggleJournal()"></div>
+    </div>
+    <div id="journal-type-wrap" style="display:none;">
+      <div style="margin-top: 14px; font-size: 12px; color: var(--text3); margin-bottom: 8px; font-family: var(--mono);">Type</div>
+      <div class="journal-type-row" id="journalType">
+        <button class="type-btn" data-val="personal" onclick="setJournalType('personal')">Personal</button>
+        <button class="type-btn" data-val="technical" onclick="setJournalType('technical')">Technical</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses (quick add on log page) -->
+  <div class="section">
+    <div class="section-label">Add expense</div>
+    <div class="expense-cats" id="logExpenseCats"></div>
+    <div class="expense-inputs">
+      <div class="expense-amount-wrap">
+        <span>MKD</span>
+        <input type="number" id="logExpAmt" placeholder="0" min="0">
+      </div>
+      <button class="add-btn" onclick="addExpense()">Add</button>
+    </div>
+    <input type="text" class="note-input" id="logExpNote" placeholder="Note (optional)">
+    <div class="expense-list" id="logExpList"></div>
+    <div class="expense-daily-total" id="logDailyTotal" style="display:none;">
+      <span>Today's total</span>
+      <span id="logDailyTotalAmt">0 MKD</span>
+    </div>
+  </div>
+
+  <button class="save-btn" onclick="saveDay()">Save today's log</button>
+  <div class="save-feedback" id="saveFeedback"></div>
+
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="page-dashboard">
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-label">Avg sleep (7d)</div>
+      <div class="dash-card-val accent" id="d-sleep">—</div>
+      <div class="dash-card-sub" id="d-sleep-sub">no data</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">Avg mood (7d)</div>
+      <div class="dash-card-val accent" id="d-mood">—</div>
+      <div class="dash-card-sub" id="d-mood-sub">no data</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">Exercise streak</div>
+      <div class="dash-card-val green" id="d-streak">—</div>
+      <div class="dash-card-sub" id="d-streak-sub">days active</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">Nicorette (7d avg)</div>
+      <div class="dash-card-val" id="d-nico">—</div>
+      <div class="dash-card-sub">gums/day</div>
+    </div>
+    <div class="dash-card wide">
+      <div class="dash-card-label">Mindfulness (last 30d)</div>
+      <div id="d-mindfulness" class="sparkline-wrap">
+        <div class="sparkline-row"><span class="sparkline-key">Meditated</span><div class="sparkline-bars" id="sp-med"></div><span class="dash-card-sub" id="sp-med-pct" style="min-width:36px;text-align:right"></span></div>
+        <div class="sparkline-row"><span class="sparkline-key">Prayed</span><div class="sparkline-bars" id="sp-pray"></div><span class="dash-card-sub" id="sp-pray-pct" style="min-width:36px;text-align:right"></span></div>
+        <div class="sparkline-row"><span class="sparkline-key">Gratitude</span><div class="sparkline-bars" id="sp-grat"></div><span class="dash-card-sub" id="sp-grat-pct" style="min-width:36px;text-align:right"></span></div>
+      </div>
+    </div>
+    <div class="dash-card wide">
+      <div class="dash-card-label">Mood trend (14d)</div>
+      <div class="sparkline-bars" id="sp-mood" style="height:48px; margin-top: 6px;"></div>
+    </div>
+    <div class="dash-card wide">
+      <div class="dash-card-label">This month spending</div>
+      <div class="dash-card-val amber" id="d-month-exp">—</div>
+      <div class="dash-card-sub" id="d-month-exp-sub">MKD this month</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EXPENSES PAGE -->
+<div class="page" id="page-expenses">
+  <div class="section">
+    <div class="section-label">Period</div>
+    <div class="exp-period-tabs">
+      <button class="exp-period-tab active" onclick="setExpPeriod('day')">Today</button>
+      <button class="exp-period-tab" onclick="setExpPeriod('week')">This week</button>
+      <button class="exp-period-tab" onclick="setExpPeriod('month')">This month</button>
+    </div>
+    <div class="dash-card-val amber" id="exp-total" style="margin-bottom:6px;">0 MKD</div>
+    <div class="dash-card-sub" id="exp-total-sub"></div>
+  </div>
+  <div class="section">
+    <div class="section-label">By category</div>
+    <div class="cat-breakdown" id="exp-cat-breakdown"></div>
+  </div>
+  <div class="section">
+    <div class="section-label">Transactions</div>
+    <div id="exp-transactions"></div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div class="page" id="page-history">
+  <div id="history-list"></div>
+</div>
+
+<script>
+const CATEGORIES = [
+  'Transportation','Car Expenses','Nicotine','Eating Out','Supermarket',
+  'Family','Health','Shopping / Haircut','Gifts & Частења','Church',
+  'Going Out','Subscriptions','Music / Work','Home','Fixed & Admin'
+];
+
+const MOOD_LABELS = ['','Rough','Low','Okay','Good','Great'];
+const EXERCISE_LABELS = ['Rest','Light','Full session'];
+
+let state = {
+  sleepQuality: 0, mood: 0, exercise: -1,
+  nicorette: 0,
+  meditated: false, prayed: false, gratitude: false,
+  journaled: false, journalType: null,
+  expenses: [], selectedCat: null
+};
+
+let expPeriod = 'day';
+
+// --- INIT ---
+function init() {
+  updateNavDate();
+  calcSleep();
+  buildCatButtons();
+  loadTodayState();
+  renderExpList();
+
+  document.getElementById('bedTime').addEventListener('input', calcSleep);
+  document.getElementById('wakeTime').addEventListener('input', calcSleep);
+}
+
+function updateNavDate() {
+  const d = new Date();
+  const opts = { weekday:'short', day:'numeric', month:'short' };
+  document.getElementById('navDate').textContent = d.toLocaleDateString('en-GB', opts).toUpperCase();
+}
+
+function calcSleep() {
+  const bed = document.getElementById('bedTime').value;
+  const wake = document.getElementById('wakeTime').value;
+  if (!bed || !wake) return;
+  const [bh,bm] = bed.split(':').map(Number);
+  const [wh,wm] = wake.split(':').map(Number);
+  let mins = (wh*60+wm) - (bh*60+bm);
+  if (mins < 0) mins += 1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  document.getElementById('sleepHours').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
+}
+
+function buildCatButtons() {
+  const wrap = document.getElementById('logExpenseCats');
+  wrap.innerHTML = CATEGORIES.map(c =>
+    `<button class="cat-btn" data-cat="${c}" onclick="selectCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+// --- SCALE ---
+function setScale(id, val) {
+  state[id] = val;
+  document.querySelectorAll(`#${id} .scale-btn`).forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) === val);
+  });
+}
+
+function setExercise(val) {
+  state.exercise = val;
+  document.querySelectorAll('#exercise .exercise-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) === val);
+  });
+}
+
+function changeCounter(key, delta) {
+  state[key] = Math.max(0, (state[key]||0) + delta);
+  document.getElementById(`${key}-val`).textContent = state[key];
+}
+
+function toggleItem(key) {
+  state[key] = !state[key];
+  const el = document.getElementById(`tog-${key}`);
+  el.classList.toggle('on', state[key]);
+}
+
+function toggleJournal() {
+  state.journaled = !state.journaled;
+  document.getElementById('tog-journaled').classList.toggle('on', state.journaled);
+  document.getElementById('journal-type-wrap').style.display = state.journaled ? 'block' : 'none';
+}
+
+function setJournalType(type) {
+  state.journalType = type;
+  document.querySelectorAll('#journalType .type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === type);
+  });
+}
+
+// --- EXPENSES ---
+function selectCat(cat) {
+  state.selectedCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+}
+
+function addExpense() {
+  const amt = parseFloat(document.getElementById('logExpAmt').value);
+  const note = document.getElementById('logExpNote').value.trim();
+  if (!amt || amt <= 0) { alert('Enter an amount'); return; }
+  if (!state.selectedCat) { alert('Select a category'); return; }
+  const exp = { cat: state.selectedCat, amt, note, time: new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) };
+  state.expenses.push(exp);
+  document.getElementById('logExpAmt').value = '';
+  document.getElementById('logExpNote').value = '';
+  renderExpList();
+  saveTodayState();
+}
+
+function deleteExpense(i) {
+  state.expenses.splice(i,1);
+  renderExpList();
+  saveTodayState();
+}
+
+function renderExpList() {
+  const list = document.getElementById('logExpList');
+  const totalEl = document.getElementById('logDailyTotal');
+  const totalAmt = document.getElementById('logDailyTotalAmt');
+  if (!state.expenses.length) { list.innerHTML=''; totalEl.style.display='none'; return; }
+  list.innerHTML = state.expenses.map((e,i) => `
+    <div class="expense-item">
+      <div class="expense-item-left">
+        <div class="expense-item-cat">${e.cat} · ${e.time}</div>
+        ${e.note ? `<div class="expense-item-note">${e.note}</div>` : ''}
+      </div>
+      <div class="expense-item-right">
+        <span class="expense-item-amt">${e.amt.toLocaleString()} MKD</span>
+        <button class="delete-btn" onclick="deleteExpense(${i})">×</button>
+      </div>
+    </div>
+  `).join('');
+  const total = state.expenses.reduce((s,e)=>s+e.amt,0);
+  totalAmt.textContent = total.toLocaleString() + ' MKD';
+  totalEl.style.display = 'flex';
+}
+
+// --- SAVE / LOAD ---
+function todayKey() {
+  return 'day_' + new Date().toISOString().slice(0,10);
+}
+
+function saveTodayState() {
+  const bed = document.getElementById('bedTime').value;
+  const wake = document.getElementById('wakeTime').value;
+  const [bh,bm] = bed.split(':').map(Number);
+  const [wh,wm] = wake.split(':').map(Number);
+  let mins = (wh*60+wm)-(bh*60+bm);
+  if (mins<0) mins+=1440;
+  const entry = {
+    date: new Date().toISOString().slice(0,10),
+    bedTime: bed, wakeTime: wake, sleepMins: mins,
+    sleepQuality: state.sleepQuality,
+    mood: state.mood,
+    exercise: state.exercise,
+    nicorette: state.nicorette,
+    meditated: state.meditated, prayed: state.prayed, gratitude: state.gratitude,
+    journaled: state.journaled, journalType: state.journalType,
+    expenses: [...state.expenses]
+  };
+  localStorage.setItem(todayKey(), JSON.stringify(entry));
+}
+
+function loadTodayState() {
+  const saved = localStorage.getItem(todayKey());
+  if (!saved) return;
+  const e = JSON.parse(saved);
+  if (e.bedTime) document.getElementById('bedTime').value = e.bedTime;
+  if (e.wakeTime) document.getElementById('wakeTime').value = e.wakeTime;
+  calcSleep();
+  if (e.sleepQuality) setScale('sleepQuality', e.sleepQuality);
+  if (e.mood) setScale('mood', e.mood);
+  if (e.exercise >= 0) setExercise(e.exercise);
+  state.nicorette = e.nicorette || 0;
+  document.getElementById('nicorette-val').textContent = state.nicorette;
+  ['meditated','prayed','gratitude'].forEach(k => {
+    state[k] = e[k] || false;
+    document.getElementById(`tog-${k}`).classList.toggle('on', state[k]);
+  });
+  if (e.journaled) { state.journaled = true; document.getElementById('tog-journaled').classList.add('on'); document.getElementById('journal-type-wrap').style.display='block'; }
+  if (e.journalType) setJournalType(e.journalType);
+  state.expenses = e.expenses || [];
+  renderExpList();
+}
+
+function saveDay() {
+  saveTodayState();
+  const fb = document.getElementById('saveFeedback');
+  fb.textContent = '✓ saved';
+  fb.style.opacity = '1';
+  setTimeout(()=>{ fb.style.opacity='0'; }, 2000);
+}
+
+// --- ALL ENTRIES ---
+function getAllEntries() {
+  const entries = [];
+  for (let i=0; i<localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('day_')) {
+      try { entries.push(JSON.parse(localStorage.getItem(k))); } catch(e){}
+    }
+  }
+  return entries.sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function getEntryRange(days) {
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-days);
+  return getAllEntries().filter(e => new Date(e.date) >= cutoff);
+}
+
+// --- DASHBOARD ---
+function renderDashboard() {
+  const e7 = getEntryRange(7);
+  const e14 = getEntryRange(14);
+  const e30 = getEntryRange(30);
+
+  // Sleep avg
+  const withSleep = e7.filter(e=>e.sleepMins>0);
+  if (withSleep.length) {
+    const avg = withSleep.reduce((s,e)=>s+e.sleepMins,0)/withSleep.length;
+    const h=Math.floor(avg/60),m=Math.round(avg%60);
+    document.getElementById('d-sleep').textContent = `${h}h${String(m).padStart(2,'0')}`;
+    document.getElementById('d-sleep-sub').textContent = `avg over ${withSleep.length} days`;
+  }
+
+  // Mood avg
+  const withMood = e7.filter(e=>e.mood>0);
+  if (withMood.length) {
+    const avg = (withMood.reduce((s,e)=>s+e.mood,0)/withMood.length).toFixed(1);
+    document.getElementById('d-mood').textContent = avg+'/5';
+    document.getElementById('d-mood-sub').textContent = MOOD_LABELS[Math.round(avg)] || '';
+  }
+
+  // Exercise streak
+  const all = getAllEntries();
+  let streak = 0;
+  for (const e of all) { if (e.exercise > 0) streak++; else break; }
+  document.getElementById('d-streak').textContent = streak;
+  document.getElementById('d-streak-sub').textContent = streak===1?'day active':'days active';
+
+  // Nicorette
+  const withNico = e7.filter(e=>e.nicorette>=0);
+  if (withNico.length) {
+    const avg = (withNico.reduce((s,e)=>s+e.nicorette,0)/withNico.length).toFixed(1);
+    document.getElementById('d-nico').textContent = avg;
+  }
+
+  // Mindfulness
+  const renderMindSpark = (entries, key, elId, pctId) => {
+    const el = document.getElementById(elId);
+    const days = 30;
+    const now = new Date();
+    let count = 0;
+    el.innerHTML = '';
+    for (let i=days-1;i>=0;i--) {
+      const d = new Date(now); d.setDate(d.getDate()-i);
+      const dk = 'day_'+d.toISOString().slice(0,10);
+      const entry = localStorage.getItem(dk);
+      const on = entry ? JSON.parse(entry)[key] : false;
+      if (on) count++;
+      const bar = document.createElement('div');
+      bar.className='spark-bar';
+      bar.style.height = on?'28px':'6px';
+      bar.style.background = on?'var(--accent)':'var(--surface3)';
+      el.appendChild(bar);
+    }
+    document.getElementById(pctId).textContent = Math.round(count/days*100)+'%';
+  };
+  renderMindSpark(e30,'meditated','sp-med','sp-med-pct');
+  renderMindSpark(e30,'prayed','sp-pray','sp-pray-pct');
+  renderMindSpark(e30,'gratitude','sp-grat','sp-grat-pct');
+
+  // Mood sparkline
+  const moodEl = document.getElementById('sp-mood');
+  moodEl.innerHTML = '';
+  const now2 = new Date();
+  for (let i=13;i>=0;i--) {
+    const d = new Date(now2); d.setDate(d.getDate()-i);
+    const dk = 'day_'+d.toISOString().slice(0,10);
+    const entry = localStorage.getItem(dk);
+    const mood = entry ? (JSON.parse(entry).mood||0) : 0;
+    const bar = document.createElement('div');
+    bar.className='spark-bar';
+    const pct = mood/5;
+    bar.style.height = mood ? Math.max(6, pct*48)+'px' : '4px';
+    bar.style.background = mood ? `hsl(${120*pct+240},70%,65%)` : 'var(--surface3)';
+    moodEl.appendChild(bar);
+  }
+
+  // Month expense
+  const now3 = new Date();
+  const monthStart = new Date(now3.getFullYear(), now3.getMonth(), 1);
+  const monthEntries = getAllEntries().filter(e=>new Date(e.date)>=monthStart);
+  const monthTotal = monthEntries.reduce((s,e)=>(e.expenses||[]).reduce((ss,ex)=>ss+ex.amt,0)+s,0);
+  document.getElementById('d-month-exp').textContent = monthTotal.toLocaleString()+' MKD';
+}
+
+// --- EXPENSE PAGE ---
+function setExpPeriod(p) {
+  expPeriod = p;
+  document.querySelectorAll('.exp-period-tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderExpensePage();
+}
+
+function renderExpensePage() {
+  const now = new Date();
+  let entries;
+  if (expPeriod==='day') {
+    const tk = 'day_'+now.toISOString().slice(0,10);
+    const e = localStorage.getItem(tk);
+    entries = e ? [JSON.parse(e)] : [];
+  } else if (expPeriod==='week') {
+    entries = getEntryRange(7);
+  } else {
+    const start = new Date(now.getFullYear(),now.getMonth(),1);
+    entries = getAllEntries().filter(e=>new Date(e.date)>=start);
+  }
+
+  const allExps = entries.flatMap(e=>(e.expenses||[]).map(ex=>({...ex,date:e.date})));
+  const total = allExps.reduce((s,e)=>s+e.amt,0);
+
+  document.getElementById('exp-total').textContent = total.toLocaleString()+' MKD';
+  document.getElementById('exp-total-sub').textContent = `${allExps.length} transaction${allExps.length!==1?'s':''}`;
+
+  // Category breakdown
+  const byCat = {};
+  allExps.forEach(e=>{ byCat[e.cat]=(byCat[e.cat]||0)+e.amt; });
+  const sorted = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+  document.getElementById('exp-cat-breakdown').innerHTML = sorted.length ?
+    sorted.map(([cat,amt])=>`
+      <div class="cat-row">
+        <span class="cat-row-name">${cat}</span>
+        <div class="cat-row-bar-wrap"><div class="cat-row-bar" style="width:${amt/max*100}%"></div></div>
+        <span class="cat-row-amt">${amt.toLocaleString()}</span>
+      </div>
+    `).join('') : '<div class="empty-state">No expenses</div>';
+
+  // Transactions
+  const txEl = document.getElementById('exp-transactions');
+  txEl.innerHTML = allExps.length ? allExps.sort((a,b)=>b.date.localeCompare(a.date)).map((e,i)=>`
+    <div class="expense-item" style="margin-bottom:6px;">
+      <div class="expense-item-left">
+        <div class="expense-item-cat">${e.cat} · ${e.date}${e.time?' · '+e.time:''}</div>
+        ${e.note?`<div class="expense-item-note">${e.note}</div>`:''}
+      </div>
+      <div class="expense-item-right">
+        <span class="expense-item-amt">${e.amt.toLocaleString()} MKD</span>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state">No transactions</div>';
+}
+
+// --- HISTORY ---
+function renderHistory() {
+  const entries = getAllEntries();
+  const el = document.getElementById('history-list');
+  if (!entries.length) {
+    el.innerHTML = '<div class="empty-state"><div class="em-icon">📋</div>No entries yet.<br>Start logging your first day!</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e => {
+    const sleepH = e.sleepMins ? `${Math.floor(e.sleepMins/60)}h${String(e.sleepMins%60).padStart(2,'0')}m` : null;
+    const expTotal = (e.expenses||[]).reduce((s,ex)=>s+ex.amt,0);
+    const mindCount = [e.meditated,e.prayed,e.gratitude].filter(Boolean).length;
+    const date = new Date(e.date+'T12:00:00');
+    const dateStr = date.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+    return `
+      <div class="history-item">
+        <div class="history-date">${dateStr.toUpperCase()}</div>
+        <div class="history-pills">
+          ${e.mood ? `<span class="history-pill mood">mood ${e.mood}/5 · ${MOOD_LABELS[e.mood]}</span>` : ''}
+          ${sleepH ? `<span class="history-pill sleep">${sleepH} sleep</span>` : ''}
+          ${e.exercise>=0 ? `<span class="history-pill exercise">${EXERCISE_LABELS[e.exercise]}</span>` : ''}
+          ${expTotal ? `<span class="history-pill expense">${expTotal.toLocaleString()} MKD</span>` : ''}
+          ${e.nicorette ? `<span class="history-pill">${e.nicorette} gums</span>` : ''}
+          ${mindCount ? `<span class="history-pill">${mindCount}/3 mindfulness</span>` : ''}
+          ${e.journaled ? `<span class="history-pill">${e.journalType||'journal'}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- PAGE NAV ---
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+  if (id==='dashboard') renderDashboard();
+  if (id==='expenses') renderExpensePage();
+  if (id==='history') renderHistory();
+}
+
+init();
+</script>
+</body>
+</html>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
